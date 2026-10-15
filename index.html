@@ -1,0 +1,1675 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12141c">
+<title>Learning Checkers</title>
+<style>
+:root, :root[data-theme="classic"] {
+  --bg:#12141c; --panel:#171a26; --card:#1f2333; --card-hi:#2b3250;
+  --tx:#eef0f8; --mu:#8b92ab; --ac:#f7c948; --ac-dk:#c9962a;
+  --lt:#ead9b8; --dk:#7b5236; --sh:#43291b;
+  --rd:#e5484d; --rd-s:#8c2024; --rd-r:#ff9ea1;
+  --bk:#3a4057; --bk-s:#0e1017; --bk-r:#9aa3c4;
+  --gn:#3ddc97; --er:#ff6b6f; --ln:#2a3047; --tr:#0d0f16;
+  --btn:#2a3047; --btn-hi:#3a4470; --crown:#f7c948; --silver:#c9cfe0;
+}
+:root[data-theme="light"] {
+  --bg:#f1ede4; --panel:#efe9dc; --card:#faf6ec; --card-hi:#e6dfcc;
+  --tx:#1f2433; --mu:#6c7189; --ac:#d9961a; --ac-dk:#b3790f;
+  --lt:#f0e2c4; --dk:#a1714a; --sh:#6f4a2e;
+  --rd:#d94a45; --rd-s:#8c2420; --rd-r:#f5a09c;
+  --bk:#3b4152; --bk-s:#14171f; --bk-r:#8a92ab;
+  --gn:#1fa56a; --er:#d6453f; --ln:#d9d2c0; --tr:#d9d2c0;
+  --btn:#e6dfcc; --btn-hi:#d6cdb4;
+}
+:root[data-theme="midnight"] {
+  --bg:#0b1020; --panel:#10172b; --card:#18213b; --card-hi:#26335a;
+  --tx:#e8efff; --mu:#8794b8; --ac:#5ad1ff; --ac-dk:#2b8fb8;
+  --lt:#cdd7ee; --dk:#4a679c; --sh:#243756;
+  --rd:#ff6b86; --rd-s:#9a2b47; --rd-r:#ffb0c0;
+  --bk:#242c4a; --bk-s:#0a0e1c; --bk-r:#7e8fc2;
+  --gn:#4ff0b0; --er:#ff7b9a; --ln:#222d4d; --tr:#0a0f1e;
+  --btn:#222d4d; --btn-hi:#32447a;
+}
+:root[data-theme="forest"] {
+  --bg:#101a14; --panel:#15221a; --card:#1d2e23; --card-hi:#2b4535;
+  --tx:#eef5ea; --mu:#8fa896; --ac:#e8b84a; --ac-dk:#b88a2a;
+  --lt:#e6dfc0; --dk:#55804f; --sh:#2f4a2c;
+  --rd:#e5484d; --rd-s:#8c2024; --rd-r:#ff9ea1;
+  --bk:#33373d; --bk-s:#0f1114; --bk-r:#9aa0aa;
+  --gn:#6be58b; --er:#ff7a6b; --ln:#27402f; --tr:#0b130e;
+  --btn:#27402f; --btn-hi:#35573f;
+}
+:root[data-theme="neon"] {
+  --bg:#0a0612; --panel:#120a22; --card:#1b1033; --card-hi:#2b1a52;
+  --tx:#f4ecff; --mu:#9a86c4; --ac:#ff4fd8; --ac-dk:#b62d97;
+  --lt:#3b2578; --dk:#150a2e; --sh:#06020f;
+  --rd:#ff3d9a; --rd-s:#8f1658; --rd-r:#ff9ed0;
+  --bk:#17c5e8; --bk-s:#0a5a70; --bk-r:#9af0ff;
+  --gn:#39ffb0; --er:#ff5470; --ln:#2a1a52; --tr:#08030f;
+  --btn:#2a1a52; --btn-hi:#432a80;
+}
+:root[data-theme="paper"] {
+  --bg:#dcd6c8; --panel:#efe9dc; --card:#faf6ec; --card-hi:#e6dfcc;
+  --tx:#1f2433; --mu:#6c7189; --ac:#d9961a; --ac-dk:#b3790f;
+  --lt:#f6ead0; --dk:#a1714a; --sh:#6f4a2e;
+  --rd:#d94a45; --rd-s:#8c2420; --rd-r:#f5a09c;
+  --bk:#3b4152; --bk-s:#14171f; --bk-r:#8a92ab;
+  --gn:#1fa56a; --er:#d6453f; --ln:#d9d2c0; --tr:#d9d2c0;
+  --btn:#e6dfcc; --btn-hi:#d6cdb4;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; min-height: 100%;
+  background: var(--bg); color: var(--tx);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+main {
+  max-width: 1040px; margin: 0 auto;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  display: grid; gap: 14px; grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  main { grid-template-columns: minmax(0, 620px) minmax(300px, 1fr); align-items: start; padding: 18px; }
+}
+h1 { font-size: 1.35rem; margin: 0 0 2px; letter-spacing: -0.02em; }
+.sub { color: var(--mu); font-size: 0.85rem; margin-bottom: 10px; }
+.card { background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 14px; }
+#board-card { padding: 10px; }
+#wrap { width: 100%; max-width: 600px; margin: 0 auto; position: relative; }
+canvas {
+  width: 100%; height: auto; display: block;
+  border-radius: 12px; touch-action: none; cursor: pointer; background: var(--dk);
+}
+#status {
+  font-weight: 700; min-height: 1.5em; margin: 10px 4px 0;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+#status .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--ac);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: 0.35; transform: scale(0.85); } }
+.tabs {
+  display: flex; gap: 3px; background: var(--panel);
+  border-radius: 12px; padding: 4px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.tab {
+  flex: 1; border: 0; background: transparent; color: var(--mu);
+  font: inherit; font-weight: 600; font-size: 0.78rem;
+  padding: 8px 4px; border-radius: 9px; cursor: pointer; min-width: 52px;
+}
+.tab.on { background: var(--card-hi); color: var(--ac); }
+.row {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; margin: 6px 0; color: var(--mu); font-size: 0.9rem;
+}
+.row b { color: var(--tx); font-variant-numeric: tabular-nums; }
+.bar { height: 9px; border-radius: 6px; background: var(--tr); overflow: hidden; margin: 4px 0 12px; }
+.bar i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--ac-dk), var(--ac));
+  width: 0; transition: width 0.45s ease; border-radius: 6px;
+}
+label.field {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; margin: 10px 0; font-size: 0.9rem; color: var(--mu);
+}
+select, button { font: inherit; color: var(--tx); }
+select {
+  background: var(--bg); border: 1px solid var(--ln);
+  border-radius: 9px; padding: 7px 10px; min-width: 110px;
+}
+button {
+  background: var(--btn); border: 1px solid var(--ln);
+  border-radius: 10px; padding: 9px 12px; cursor: pointer;
+  font-weight: 600; transition: background 0.15s, transform 0.1s;
+}
+button:hover { background: var(--btn-hi); }
+button:active { transform: scale(0.98); }
+button.p {
+  background: var(--ac); color: #1a1405; border: 0;
+  font-weight: 700; width: 100%; padding: 12px; margin-top: 8px;
+}
+button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.btn-row button, .btn-row select { flex: 1; }
+small, .hint { color: var(--mu); font-size: 0.78rem; line-height: 1.4; display: block; margin-top: 10px; }
+.panel { display: none; }
+.panel.on { display: block; }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+.stat-box { background: var(--panel); border-radius: 12px; padding: 12px 8px; text-align: center; }
+.stat-box .n { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat-box .l { font-size: 0.7rem; color: var(--mu); font-weight: 700; letter-spacing: 0.04em; margin-top: 2px; }
+.mistake {
+  background: var(--panel); border-radius: 12px; padding: 10px 12px; margin: 8px 0;
+  border-left: 3px solid var(--er);
+}
+.mistake.inacc { border-left-color: var(--ac); }
+.mistake .kind {
+  display: inline-block; font-size: 0.68rem; font-weight: 800;
+  padding: 2px 7px; border-radius: 6px; background: var(--er); color: #fff; margin-right: 6px;
+}
+.mistake.inacc .kind { background: var(--ac); color: #1a1405; }
+.mistake .mv { font-weight: 600; margin-top: 4px; font-size: 0.88rem; }
+.quality { display: flex; height: 10px; border-radius: 6px; overflow: hidden; background: var(--tr); margin: 8px 0 6px; }
+.quality span { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 12px; font-size: 0.72rem; color: var(--mu); margin-bottom: 8px; }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.acc-ring {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: conic-gradient(var(--gn) calc(var(--pct) * 1%), var(--tr) 0);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.acc-ring::before {
+  content: attr(data-acc); width: 56px; height: 56px; border-radius: 50%;
+  background: var(--card); display: grid; place-items: center; font-weight: 800; font-size: 1rem;
+}
+.acc-row { display: flex; gap: 14px; align-items: center; margin: 8px 0 12px; }
+.banner {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.9);
+  background: var(--card); border: 2px solid var(--ac); border-radius: 18px;
+  padding: 22px 28px; text-align: center; min-width: 220px; max-width: 90%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35); opacity: 0; pointer-events: none;
+  transition: opacity 0.25s, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 5;
+}
+.banner.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+.banner h2 { margin: 0 0 6px; font-size: 1.4rem; }
+.banner p { margin: 0 0 12px; color: var(--mu); font-size: 0.88rem; }
+.banner button { width: 100%; }
+hr.sep { border: 0; border-top: 1px solid var(--ln); margin: 12px 0; }
+.train-prog { height: 6px; background: var(--tr); border-radius: 4px; overflow: hidden; margin-top: 8px; display: none; }
+.train-prog i { display: block; height: 100%; background: var(--ac); width: 0; transition: width 0.2s; }
+.pill {
+  display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 2px 8px;
+  border-radius: 8px; background: var(--ac-dk); color: #1a1405; margin-left: 6px;
+}
+.mini-board {
+  display: grid; gap: 0; margin: 10px auto; width: min(100%, 220px);
+  border-radius: 8px; overflow: hidden; border: 2px solid var(--ln);
+}
+.mini-board i { display: block; aspect-ratio: 1; }
+.test-badge {
+  font-size: 0.7rem; font-weight: 800; color: var(--er);
+  letter-spacing: 0.04em; margin-left: auto;
+}
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <h1>Learning Checkers</h1>
+    <div class="sub">The AI studies how you play and gets sharper every game.</div>
+    <div class="card" id="board-card">
+      <div id="wrap">
+        <canvas id="cv" width="600" height="600"></canvas>
+        <div class="banner" id="banner">
+          <h2 id="ban-title">You won!</h2>
+          <p id="ban-sub">The AI learned from this game.</p>
+          <button class="p" id="ban-btn">Play again</button>
+        </div>
+      </div>
+      <div id="status">Your move</div>
+    </div>
+  </section>
+
+  <aside class="card">
+    <div class="tabs">
+      <button class="tab on" data-tab="game">Game</button>
+      <button class="tab" data-tab="coach">Coach</button>
+      <button class="tab" data-tab="daily">Daily</button>
+      <button class="tab" data-tab="online">Online</button>
+      <button class="tab" data-tab="stats">Stats</button>
+      <button class="tab" data-tab="setup">Setup</button>
+    </div>
+
+    <div class="panel on" id="p-game">
+      <div class="row">
+        <span>AI level <span class="pill" id="boost-pill" style="display:none"></span></span>
+        <b id="lvl">1</b>
+      </div>
+      <div class="bar"><i id="xpbar"></i></div>
+      <div class="row"><span>Knows your style</span><b id="famv">0%</b></div>
+      <div class="row"><span>Looks ahead</span><b id="dep">1 move</b></div>
+      <div class="row"><span>Random mistakes</span><b id="eps">70%</b></div>
+      <div class="row" id="test-row" style="display:none"><span class="test-badge">TEST MODE — not counted</span></div>
+      <hr class="sep">
+      <div class="stat-grid">
+        <div class="stat-box"><div class="n" id="w" style="color:var(--gn)">0</div><div class="l">WINS</div></div>
+        <div class="stat-box"><div class="n" id="l" style="color:var(--er)">0</div><div class="l">LOSSES</div></div>
+        <div class="stat-box"><div class="n" id="d" style="color:var(--mu)">0</div><div class="l">DRAWS</div></div>
+      </div>
+      <button class="p" id="new">New game</button>
+      <div class="btn-row">
+        <select id="train-n" style="flex:0.9;min-width:0">
+          <option value="25">25</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+        <button id="train" style="flex:1.4">Train AI</button>
+      </div>
+      <div class="train-prog" id="tprog"><i></i></div>
+      <small class="hint">Captures forced · multi-jumps by clicking each square · Ctrl+click to move any piece (test mode). Kings that return home can revive a piece.</small>
+    </div>
+
+    <div class="panel" id="p-coach">
+      <div id="coach-empty" class="hint">Finish a game and the coach will review your moves.</div>
+      <div id="coach-body" style="display:none">
+        <div class="acc-row">
+          <div class="acc-ring" id="acc-ring" style="--pct:0" data-acc="—"></div>
+          <div>
+            <div style="font-weight:700" id="acc-verdict">—</div>
+            <div class="hint" id="acc-detail" style="margin:0"></div>
+          </div>
+        </div>
+        <div class="quality" id="qbar"></div>
+        <div class="legend" id="qleg"></div>
+        <div id="mistakes"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p-daily">
+      <div class="row"><span>Today</span><b id="d-date">—</b></div>
+      <div class="row"><span>AI level</span><b id="d-lvl">—</b></div>
+      <div class="row"><span>You are</span><b id="d-col">—</b></div>
+      <div class="row"><span>Streak</span><b id="d-streak">0 days</b></div>
+      <div class="row"><span>Best / wins</span><b id="d-best">0 / 0</b></div>
+      <div id="d-mini" class="mini-board"></div>
+      <div class="hint" id="d-status">Not completed yet</div>
+      <button class="p" id="d-start">Start challenge</button>
+      <small class="hint">Same position for everyone today. Daily games do not train the AI or change XP.</small>
+    </div>
+
+    <div class="panel" id="p-online">
+      <div class="row"><span>Status</span><b id="o-status">Disconnected</b></div>
+      <div class="row"><span>Room code</span><b id="o-code">—</b></div>
+      <div class="row"><span>You are</span><b id="o-col">—</b></div>
+      <hr class="sep">
+      <button class="p" id="o-host">Create room</button>
+      <div class="btn-row" style="margin-top:8px">
+        <input id="o-join-code" placeholder="Room code" maxlength="6"
+          style="flex:1.2;font:inherit;padding:9px 10px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);text-transform:uppercase">
+        <button id="o-join" style="flex:1">Join</button>
+      </div>
+      <button id="o-leave" style="width:100%;margin-top:8px;display:none">Leave room</button>
+      <small class="hint">Share the room code with a friend. Host plays Red (moves first). Online games do not train the AI. Needs internet (PeerJS).</small>
+    </div>
+
+    <div class="panel" id="p-stats">
+      <div class="row"><span>Games played</span><b id="s-games">0</b></div>
+      <div class="row"><span>Moves recorded</span><b id="s-moves">0</b></div>
+      <div class="row"><span>Habits stored</span><b id="s-habits">0</b></div>
+      <div class="row"><span>Book positions</span><b id="s-book">0</b></div>
+      <div class="row"><span>Self-play games</span><b id="s-self">0</b></div>
+      <div class="row"><span>Predictability</span><b id="s-pred">0%</b></div>
+      <hr class="sep">
+      <div class="row"><span>Eval weights</span><b id="s-w" style="font-size:0.72rem">—</b></div>
+      <div class="hint">The AI tunes its board evaluation from every game (TD learning), remembers your habits, and keeps a book of what worked.</div>
+    </div>
+
+    <div class="panel" id="p-setup">
+      <label class="field">Board size
+        <select id="size"><option>6</option><option selected>8</option><option>10</option><option>12</option></select>
+      </label>
+      <label class="field">You play
+        <select id="col">
+          <option value="1">Red (moves first)</option>
+          <option value="-1">Black</option>
+          <option value="0">Random</option>
+        </select>
+      </label>
+      <label class="field">Resurrection rule
+        <input type="checkbox" id="rev" checked style="accent-color:var(--ac)">
+      </label>
+      <label class="field">Theme
+        <select id="theme">
+          <option value="classic">Classic</option>
+          <option value="midnight">Midnight</option>
+          <option value="forest">Forest</option>
+          <option value="neon">Neon</option>
+          <option value="paper">Paper</option>
+          <option value="light">Light</option>
+        </select>
+      </label>
+      <hr class="sep">
+      <div class="row"><span>Difficulty boost</span><b id="boost-lab">Off</b></div>
+      <div class="btn-row">
+        <button id="bminus">−</button>
+        <button id="bplus">+</button>
+      </div>
+      <div class="bar" style="margin-top:8px"><i id="boost-bar"></i></div>
+      <small class="hint">Boost makes the AI play stronger right away. It does not change XP or train it.</small>
+      <hr class="sep">
+      <button id="export">Export brain</button>
+      <button id="import" style="margin-top:6px">Import brain</button>
+      <input type="file" id="impfile" accept="application/json,.json" hidden>
+      <small class="hint">Ctrl+click (or right-click) a piece, then an empty dark square, to teleport it for testing. That game is not counted.</small>
+    </div>
+  </aside>
+</main>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(() => {
+"use strict";
+
+const R = 1, B = -1, KEY = "learning-checkers-v3";
+const BOOST_STEPS = [0, 1, 2, 3, 5, 8, 12, 20, 30, 50];
+const W0 = [1.0, 1.5, 0.4, 0.3, 0.2, 0.0, 0.55];
+
+let N = 8, ROWS = 3, PIECES = 12, REV = true;
+let human = R, ai = B, board, side, legal = [], sel = [], over = false;
+let anim = null, lastMv = [], quiet = 0, aiLog = [], moveLog = [], states = [];
+let thinking = false, training = false, coach = null, reviewPos = null;
+let dailyMode = false, onlineMode = false, tampered = false, dbgSel = null, effects = [];
+let dailyCache = null;
+let peer = null, conn = null, isHost = false, onlineReady = false;
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+function blank() {
+  return {
+    games: 0, moves: 0, wins: 0, losses: 0, draws: 0, pred: 0, selfplay: 0,
+    habits: {}, book: {}, history: [], w: W0.slice(),
+    settings: { boost: 0, theme: "classic", color: "1", revive: true, size: 8,
+      daily: { streak: 0, best: 0, wins: 0, last_win: null, date: null, attempts: 0 } }
+  };
+}
+let brain = (() => {
+  try {
+    const d = Object.assign(blank(), JSON.parse(localStorage.getItem(KEY)) || {});
+    d.settings = Object.assign(blank().settings, d.settings || {});
+    d.settings.daily = Object.assign(blank().settings.daily, (d.settings && d.settings.daily) || {});
+    if (!Array.isArray(d.w) || d.w.length < W0.length) d.w = W0.slice();
+    while (d.w.length < W0.length) d.w.push(W0[d.w.length]);
+    return d;
+  } catch { return blank(); }
+})();
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(brain)); } catch {} };
+
+/* ---------- engine ---------- */
+function startBoard() {
+  const b = new Array(N * N).fill(0);
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if ((r + c) % 2 === 1) {
+      if (r < ROWS) b[r * N + c] = B;
+      else if (r >= N - ROWS) b[r * N + c] = R;
+    }
+  }
+  return b;
+}
+const dirs = p => Math.abs(p) > 1
+  ? [[-1,-1],[-1,1],[1,-1],[1,1]]
+  : (p > 0 ? [[-1,-1],[-1,1]] : [[1,-1],[1,1]]);
+const isJump = m => Math.abs(m[1] - m[0]) > N + 1;
+
+function jumps(b, pos, p, path, out) {
+  const r = (pos / N) | 0, c = pos % N;
+  let ext = false;
+  for (const [dr, dc] of dirs(p)) {
+    const r2 = r + 2 * dr, c2 = c + 2 * dc;
+    if (r2 < 0 || r2 >= N || c2 < 0 || c2 >= N) continue;
+    const mid = (r + dr) * N + c + dc, to = r2 * N + c2, m = b[mid];
+    if (m * p < 0 && b[to] === 0) {
+      ext = true; b[mid] = 0;
+      if (Math.abs(p) === 1 && (p > 0 ? r2 === 0 : r2 === N - 1)) out.push([...path, to]);
+      else jumps(b, to, p, [...path, to], out);
+      b[mid] = m;
+    }
+  }
+  if (!ext && path.length > 1) out.push(path);
+}
+function gen(b, s) {
+  const bb = b.slice(), J = [];
+  for (let i = 0; i < N * N; i++) if (bb[i] * s > 0) {
+    const p = bb[i]; bb[i] = 0; jumps(bb, i, p, [i], J); bb[i] = p;
+  }
+  if (J.length) return J;
+  const S = [];
+  for (let i = 0; i < N * N; i++) if (b[i] * s > 0) {
+    const r = (i / N) | 0, c = i % N;
+    for (const [dr, dc] of dirs(b[i])) {
+      const r2 = r + dr, c2 = c + dc;
+      if (r2 >= 0 && r2 < N && c2 >= 0 && c2 < N && b[r2 * N + c2] === 0)
+        S.push([i, r2 * N + c2]);
+    }
+  }
+  return S;
+}
+function revive(b, s) {
+  let have = 0; for (const v of b) if (v * s > 0) have++;
+  if (have >= PIECES) return false;
+  const foes = []; b.forEach((v, i) => { if (v * -s > 0) foes.push([(i / N) | 0, i % N]); });
+  let best = null, bn = 1e9;
+  for (let k = 0; k < ROWS; k++) {
+    const r = s > 0 ? N - 1 - k : k;
+    for (let c = 0; c < N; c++) {
+      const i = r * N + c;
+      if ((r + c) % 2 === 1 && b[i] === 0) {
+        const n = foes.filter(f => Math.max(Math.abs(f[0] - r), Math.abs(f[1] - c)) <= 2).length;
+        if (n < bn) { bn = n; best = i; }
+      }
+    }
+  }
+  if (best === null) return false;
+  b[best] = s; return true;
+}
+function land(b, p, end) {
+  const s = p > 0 ? 1 : -1, r = (end / N) | 0;
+  if (Math.abs(p) === 1) {
+    if (s > 0 ? r === 0 : r === N - 1) p = 2 * s;
+  } else if (REV) {
+    const home = s > 0 ? N - 1 : 0, far = s > 0 ? 0 : N - 1;
+    if (Math.abs(p) === 2 && r === home) {
+      b[end] = 3 * s;
+      if (revive(b, s)) return;
+      b[end] = p; return;
+    }
+    if (Math.abs(p) === 3 && r === far) p = 2 * s;
+  }
+  b[end] = p;
+}
+function apply(b, m) {
+  const x = b.slice(), p = x[m[0]]; x[m[0]] = 0;
+  for (let i = 0; i < m.length - 1; i++)
+    if (Math.abs(m[i] - m[i + 1]) > N + 1) x[(m[i] + m[i + 1]) / 2 | 0] = 0;
+  land(x, p, m[m.length - 1]); return x;
+}
+function teleport(b, src, dst) {
+  const x = b.slice(), p = x[src]; x[src] = 0; land(x, p, dst); return x;
+}
+const key = (b, s) => s + ":" + b.map(v => v + 3).join("");
+const sqName = i => "abcdefghijkl"[i % N] + (N - ((i / N) | 0));
+const moveText = m => m.map(sqName).join(isJump(m) ? " × " : " → ");
+
+/* ---------- features + TD learning ---------- */
+function features(b) {
+  let men = 0, kings = 0, adv = 0, cen = 0, back = 0, edge = 0, rev = 0;
+  let rc = 0, bc = 0, rch = 0, bch = 0;
+  const lo = (N / 2 | 0) - 2;
+  for (let i = 0; i < N * N; i++) {
+    const p = b[i]; if (!p) continue;
+    const s = p > 0 ? 1 : -1, r = (i / N) | 0, c = i % N;
+    if (s > 0) rc++; else bc++;
+    if (p === 1) { men++; adv += N - 1 - r; if (r === N - 1) back++; }
+    else if (p === -1) { men--; adv -= r; if (r === 0) back--; }
+    else {
+      kings += s;
+      if (Math.abs(p) === 2) {
+        const prog = 1 - ((s > 0 ? N - 1 - r : r) / (N - 1));
+        if (s > 0) rch += prog; else bch += prog;
+      }
+    }
+    if (r >= lo && r < lo + 4 && c >= lo && c < lo + 4) cen += s;
+    if (c === 0 || c === N - 1) edge += s;
+  }
+  if (REV) rev = (rc < PIECES ? rch : 0) - (bc < PIECES ? bch : 0);
+  return [men, kings, adv / N, cen / 4, back / 2, edge / 4, rev];
+}
+function ev(b) {
+  const f = features(b);
+  let v = 0;
+  for (let i = 0; i < f.length; i++) v += (brain.w[i] || 0) * f[i];
+  return v;
+}
+function tdUpdate(stateList, result, alpha) {
+  alpha = alpha || 0.012;
+  const feats = stateList.map(features);
+  const n = feats.length;
+  for (let t = 0; t < n; t++) {
+    const ft = feats[t];
+    let dot = 0; for (let i = 0; i < ft.length; i++) dot += brain.w[i] * ft[i];
+    const v = Math.tanh(dot / 4);
+    let target;
+    if (t === n - 1) target = result;
+    else {
+      let d2 = 0; for (let i = 0; i < feats[t + 1].length; i++) d2 += brain.w[i] * feats[t + 1][i];
+      target = Math.tanh(d2 / 4);
+    }
+    const g = alpha * (target - v) * (1 - v * v) / 4;
+    for (let i = 0; i < brain.w.length; i++)
+      brain.w[i] = Math.max(-3, Math.min(8, brain.w[i] + g * ft[i]));
+  }
+}
+
+/* ---------- search ---------- */
+let nodes = 0, deadline = 0;
+function search(b, s, d, al, be, ply) {
+  if ((++nodes & 127) === 0 && Date.now() > deadline) throw "timeout";
+  const m = gen(b, s);
+  if (!m.length) return -s * (1000 + d);
+  if (d <= 0 && (!isJump(m[0]) || d < -5)) return ev(b);
+
+  if (ply === 1 && s === human && !dailyMode) {
+    const h = brain.habits[key(b, s)];
+    if (h) {
+      const vals = m.map(mv => search(apply(b, mv), -s, d - 1, -1e9, 1e9, 2));
+      let tot = 0, ex = 0;
+      m.forEach((mv, i) => { const w = h[mv.join("-")] || 0; tot += w; ex += w * vals[i]; });
+      const best = s > 0 ? Math.max(...vals) : Math.min(...vals);
+      if (!tot) return best;
+      const w = 0.85 * tot / (tot + 1);
+      return w * (ex / tot) + (1 - w) * best;
+    }
+  }
+  const kids = m.map(mv => ({ mv, ch: apply(b, mv) }));
+  if (d >= 2 && kids.length > 1)
+    kids.sort((a, b) => s > 0 ? ev(b.ch) - ev(a.ch) : ev(a.ch) - ev(b.ch));
+
+  if (s > 0) {
+    let best = -1e9;
+    for (const { ch } of kids) {
+      best = Math.max(best, search(ch, -s, d - 1, al, be, ply + 1));
+      al = Math.max(al, best); if (al >= be) break;
+    }
+    return best;
+  }
+  let best = 1e9;
+  for (const { ch } of kids) {
+    best = Math.min(best, search(ch, -s, d - 1, al, be, ply + 1));
+    be = Math.min(be, best); if (al >= be) break;
+  }
+  return best;
+}
+
+function boost() { return +brain.settings.boost || 0; }
+
+function params(fixedLevel) {
+  const xp = brain.games * 15 + brain.moves * 0.15 + brain.selfplay * 0.5;
+  const fam = Math.min(1, brain.games / 3) * (0.75 + 0.25 * Math.min(1, brain.pred * 2));
+  let skill, depth, level, eps;
+  if (fixedLevel != null) {
+    level = fixedLevel;
+    skill = Math.min(1, (level - 1) / 10);
+    depth = 1 + Math.floor(skill * 5);
+    if (level > 10) depth = 6 + ((level - 10) / 3 | 0);
+    eps = 0;
+  } else {
+    const b = boost();
+    skill = Math.max(Math.min(1, (xp + b * 40) / 400), 0.95 * fam);
+    depth = 1 + Math.floor(skill * 5);
+    const eff = 1 + Math.floor((xp + b * 40) / 40);
+    if (eff > 10) depth = 6 + ((eff - 10) / 3 | 0);
+    level = Math.max(eff, 1 + Math.floor(fam * 9.5));
+    eps = 0.7 * (1 - skill) ** 2;
+  }
+  if (board && board.filter(Boolean).length <= 8) depth = Math.min(depth + 1, 8);
+  return { xp, fam, skill, depth, eps, level, xpIn: xp % 40, realLevel: 1 + (xp / 40 | 0) };
+}
+
+function bookBonus(k, mv) {
+  const e = brain.book[k];
+  const x = e && e[mv.join("-")];
+  return x ? (x[0] - x[1]) / (x[0] + x[1] + 2) * 1.15 : 0;
+}
+
+function pickAI(b, sideToMove, depth, eps, timeMs, useBook) {
+  const m = gen(b, sideToMove);
+  if (!m.length) return null;
+  if (m.length === 1) return m[0];
+  if (Math.random() < eps) return m[(Math.random() * m.length) | 0];
+  const k = key(b, sideToMove);
+  const pen = m.map(mv => (useBook !== false ? -bookBonus(k, mv) : 0));
+  deadline = Date.now() + (timeMs || 1200);
+  let sc = null;
+  for (let d = 1; d <= depth; d++) {
+    try {
+      nodes = 0;
+      sc = m.map((mv, i) => sideToMove * search(apply(b, mv), -sideToMove, d - 1, -1e9, 1e9, 1) - pen[i]);
+    } catch { break; }
+  }
+  if (!sc) return m[(Math.random() * m.length) | 0];
+  const top = Math.max(...sc);
+  const c = m.filter((_, i) => sc[i] >= top - 0.025);
+  return c[(Math.random() * c.length) | 0];
+}
+
+/* ---------- daily ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function todayISO() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function getDaily() {
+  const iso = todayISO();
+  if (dailyCache && dailyCache.iso === iso) return dailyCache;
+  const day = new Date(); day.setHours(0, 0, 0, 0);
+  const rng = mulberry32(day.getTime() / 86400000 * 7919 + 17 | 0);
+  const level = 4 + (rng() * 17 | 0);
+  const hum = rng() < 0.5 ? R : B;
+  // Always generate on 8x8
+  const oldN = N, oldR = ROWS, oldP = PIECES;
+  N = 8; ROWS = 3; PIECES = 12;
+  let best = null;
+  for (let attempt = 0; attempt < 250; attempt++) {
+    let b = startBoard(), s = R, ok = true;
+    const plies = 6 + (rng() * 7 | 0);
+    for (let p = 0; p < plies; p++) {
+      const mv = gen(b, s);
+      if (!mv.length) { ok = false; break; }
+      b = apply(b, mv[(rng() * mv.length) | 0]);
+      s = -s;
+    }
+    if (!ok || !gen(b, s).length) continue;
+    const rc = b.filter(x => x > 0).length, bc = b.filter(x => x < 0).length;
+    if (rc < 9 || bc < 9) continue;
+    if (Math.abs(ev(b)) > 0.8) continue;
+    best = { board: b, side: s, human: hum, level, iso, date: day };
+    break;
+  }
+  if (!best) best = { board: startBoard(), side: R, human: hum, level, iso, date: day };
+  N = oldN; ROWS = oldR; PIECES = oldP;
+  dailyCache = best;
+  return best;
+}
+
+function currentStreak() {
+  const st = brain.settings.daily;
+  const today = todayISO();
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const yiso = y.getFullYear() + "-" + String(y.getMonth() + 1).padStart(2, "0") + "-" + String(y.getDate()).padStart(2, "0");
+  if (st.last_win === today || st.last_win === yiso) return st.streak || 0;
+  return 0;
+}
+
+function recordDaily(won) {
+  const st = brain.settings.daily;
+  const today = todayISO();
+  if (won && st.last_win !== today) {
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    const yiso = y.getFullYear() + "-" + String(y.getMonth() + 1).padStart(2, "0") + "-" + String(y.getDate()).padStart(2, "0");
+    st.streak = st.last_win === yiso ? (st.streak || 0) + 1 : 1;
+    st.best = Math.max(st.best || 0, st.streak);
+    st.wins = (st.wins || 0) + 1;
+    st.last_win = today;
+  }
+  save();
+  return st.streak || 0;
+}
+
+function renderDailyPanel() {
+  const d = getDaily();
+  const st = brain.settings.daily;
+  const opts = { weekday: "short", day: "numeric", month: "short" };
+  $("#d-date").textContent = d.date.toLocaleDateString(undefined, opts);
+  $("#d-lvl").textContent = d.level;
+  $("#d-col").textContent = d.human === R ? "Red" : "Black";
+  $("#d-streak").textContent = currentStreak() + " day" + (currentStreak() === 1 ? "" : "s");
+  $("#d-best").textContent = (st.best || 0) + " / " + (st.wins || 0);
+  const done = st.last_win === d.iso;
+  const attempts = st.date === d.iso ? (st.attempts || 0) : 0;
+  $("#d-status").textContent = done ? "Completed today ✓" : ("Not completed · attempts: " + attempts);
+  $("#d-start").textContent = dailyMode && !over ? "Restart challenge" : done ? "Play again" : "Start challenge";
+
+  // mini board
+  const mini = $("#d-mini");
+  mini.style.gridTemplateColumns = "repeat(8, 1fr)";
+  mini.innerHTML = "";
+  const flip = d.human === B;
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const cell = document.createElement("i");
+    const dark = (r + c) % 2 === 1;
+    cell.style.background = dark ? "var(--dk)" : "var(--lt)";
+    const idx = flip ? (7 - r) * 8 + (7 - c) : r * 8 + c;
+    const p = d.board[idx];
+    if (p) {
+      const dot = document.createElement("span");
+      dot.style.cssText = "display:block;width:60%;height:60%;margin:20% auto;border-radius:50%;background:" +
+        (p > 0 ? "var(--rd)" : "var(--bk)");
+      if (Math.abs(p) >= 2) dot.style.boxShadow = "inset 0 0 0 2px var(--crown)";
+      cell.appendChild(dot);
+    }
+    mini.appendChild(cell);
+  }
+}
+
+/* ---------- UI ---------- */
+function say(t, thinkingFlag) {
+  const el = $("#status"); el.textContent = "";
+  if (thinkingFlag) { const d = document.createElement("span"); d.className = "dot"; el.appendChild(d); }
+  el.appendChild(document.createTextNode(t));
+}
+function refreshHud() {
+  const p = params(dailyMode ? getDaily().level : null);
+  $("#lvl").textContent = p.level;
+  $("#xpbar").style.width = (p.xpIn / 40 * 100) + "%";
+  $("#famv").textContent = Math.round(p.fam * 100) + "%";
+  $("#dep").textContent = p.depth + " move" + (p.depth > 1 ? "s" : "");
+  $("#eps").textContent = Math.round(p.eps * 100) + "%";
+  $("#w").textContent = brain.wins;
+  $("#l").textContent = brain.losses;
+  $("#d").textContent = brain.draws;
+  $("#s-games").textContent = brain.games;
+  $("#s-moves").textContent = brain.moves;
+  $("#s-habits").textContent = Object.keys(brain.habits).length;
+  $("#s-book").textContent = Object.keys(brain.book).length;
+  $("#s-self").textContent = brain.selfplay;
+  $("#s-pred").textContent = Math.round(brain.pred * 100) + "%";
+  $("#s-w").textContent = brain.w.map(x => x.toFixed(2)).join(" · ");
+  const b = boost();
+  const pill = $("#boost-pill");
+  if (dailyMode) { pill.style.display = ""; pill.textContent = "DAILY"; }
+  else if (b) { pill.style.display = ""; pill.textContent = "+" + b; }
+  else pill.style.display = "none";
+  $("#boost-lab").textContent = b ? ("+" + b + " levels") : "Off";
+  $("#boost-bar").style.width = (b / BOOST_STEPS[BOOST_STEPS.length - 1] * 100) + "%";
+  $("#test-row").style.display = tampered ? "" : "none";
+}
+function setTab(name) {
+  $$(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === name));
+  $$(".panel").forEach(p => p.classList.toggle("on", p.id === "p-" + name));
+  if (name === "daily") renderDailyPanel();
+}
+$$(".tab").forEach(t => t.addEventListener("click", () => setTab(t.dataset.tab)));
+
+/* ---------- game flow ---------- */
+function applySettingsSize() {
+  N = +$("#size").value;
+  ROWS = (N - 2) / 2 | 0;
+  PIECES = ROWS * N / 2;
+  REV = $("#rev").checked;
+  brain.settings.size = N;
+  brain.settings.revive = REV;
+}
+
+function newGame(asDaily) {
+  if (training) return;
+  if (onlineMode && !asDaily) {
+    // keep online mode only when explicitly online start
+  }
+  if (!asDaily && !onlineMode) {
+    // normal offline
+  }
+  dailyMode = !!asDaily;
+  if (dailyMode && onlineMode) leaveOnline();
+  tampered = false; dbgSel = null; reviewPos = null;
+  if (dailyMode) {
+    N = 8; ROWS = 3; PIECES = 12;
+    const d = getDaily();
+    const st = brain.settings.daily;
+    if (st.date !== d.iso) { st.date = d.iso; st.attempts = 0; }
+    st.attempts = (st.attempts || 0) + 1;
+    save();
+    human = d.human; ai = -human;
+    board = d.board.slice(); side = d.side;
+    setTab("game");
+  } else {
+    applySettingsSize();
+    const col = +$("#col").value;
+    human = col === 0 ? (Math.random() < 0.5 ? R : B) : col;
+    ai = -human;
+    board = startBoard(); side = R;
+  }
+  over = false; sel = []; lastMv = []; quiet = 0; aiLog = []; moveLog = [];
+  states = [board.slice()]; anim = null; thinking = false;
+  $("#banner").classList.remove("show");
+  fit();
+  legal = gen(board, side);
+  if (side === ai) { say("AI is thinking…", true); setTimeout(aiTurn, 280); }
+  else say(legalNote());
+  refreshHud(); draw();
+}
+const legalNote = () => legal.length && isJump(legal[0]) ? "Your move — you must capture!" : "Your move";
+
+function recordHuman(mv) {
+  if (dailyMode || onlineMode || tampered) return;
+  const k = key(board, human);
+  const h = brain.habits[k] || (brain.habits[k] = {});
+  const m = mv.join("-");
+  const rep = h[m] ? 1 : 0;
+  brain.pred += 0.05 * (rep - brain.pred);
+  h[m] = (h[m] || 0) + 1;
+  brain.moves++;
+  const ks = Object.keys(brain.habits);
+  if (ks.length > 4000) delete brain.habits[ks[0]];
+  moveLog.push({ board: board.slice(), side: human, move: mv.slice(), num: moveLog.length + 1 });
+}
+
+function spawnSparks(x, y, color, n, t0, speed, life, size) {
+  for (let i = 0; i < n; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const sp = (speed || 100) * (0.5 + Math.random());
+    effects.push({
+      k: "spark", x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 30,
+      t0: t0 || performance.now(), life: (life || 500) * (0.7 + 0.6 * Math.random()),
+      c: color, s: size || 4
+    });
+  }
+  requestAnimationFrame(drawEffects);
+}
+function spawnRing(x, y, t0) {
+  effects.push({ k: "ring", x, y, t0: t0 || performance.now(), life: 700 });
+  requestAnimationFrame(drawEffects);
+}
+function spawnBeam(x, y, t0) {
+  effects.push({ k: "beam", x, y, t0: t0 || performance.now(), life: 900 });
+  requestAnimationFrame(drawEffects);
+}
+
+function playAnim(before, mv, piece, onDone) {
+  const segs = []; let t = 0;
+  const now = performance.now();
+  for (let i = 0; i < mv.length - 1; i++) {
+    const jump = Math.abs(mv[i] - mv[i + 1]) > N + 1;
+    const dur = jump ? 300 : 220;
+    segs.push({ a: mv[i], b: mv[i + 1], jump, mid: jump ? ((mv[i] + mv[i + 1]) / 2 | 0) : null, t0: t, dur });
+    if (jump) {
+      // schedule capture sparks (coordinates filled when drawing starts using cell size)
+      segs[segs.length - 1].sparkAt = now + t + dur * 0.45;
+    }
+    t += dur;
+  }
+  anim = { before, mv, piece, segs, start: now, total: t, onDone, fading: {}, sparked: {} };
+  requestAnimationFrame(tickAnim);
+}
+function tickAnim(now) {
+  if (!anim) return;
+  const e = now - anim.start;
+  const S = cvEl.width, cell = S / N, fl = human === B;
+  const X = i => ((fl ? N - 1 - (i % N) : i % N) + 0.5) * cell;
+  const Y = i => ((fl ? N - 1 - ((i / N) | 0) : ((i / N) | 0)) + 0.5) * cell;
+  for (const s of anim.segs) {
+    if (s.jump && e >= s.t0 + s.dur * 0.4 && anim.fading[s.mid] === undefined) {
+      anim.fading[s.mid] = now;
+      if (!anim.sparked[s.mid]) {
+        anim.sparked[s.mid] = true;
+        const cap = anim.before[s.mid];
+        const col = cap > 0 ? css("--rd-r") : css("--bk-r");
+        spawnSparks(X(s.mid), Y(s.mid), col, 10, now, 110, 500, 4);
+      }
+    }
+  }
+  if (e >= anim.total) {
+    const cb = anim.onDone; anim = null; draw(); cb && cb(); return;
+  }
+  draw(now); requestAnimationFrame(tickAnim);
+}
+
+function afterMove(mover) {
+  const endPiece = board[lastMv[lastMv.length - 1]];
+  const manMoved = Math.abs(endPiece) === 1;
+  if (isJump(lastMv) || manMoved) quiet = 0; else quiet++;
+  side = -mover;
+  states.push(board.slice());
+
+  // promotion / revive effects
+  const S = cvEl.width, cell = S / N, fl = human === B;
+  const X = i => ((fl ? N - 1 - (i % N) : i % N) + 0.5) * cell;
+  const Y = i => ((fl ? N - 1 - ((i / N) | 0) : ((i / N) | 0)) + 0.5) * cell;
+  const end = lastMv[lastMv.length - 1];
+  if (Math.abs(endPiece) >= 2) {
+    spawnRing(X(end), Y(end));
+    spawnSparks(X(end), Y(end), css("--crown"), 14, performance.now(), 140, 700, 5);
+  }
+  // revived pieces: any new man that appeared for mover
+  // (cheap check: skip for online simplicity)
+
+  legal = gen(board, side);
+  if (!legal.length) return finish(mover);
+  if (quiet >= 80) return finish(0);
+
+  if (onlineMode) {
+    if (side === human) say(legalNote());
+    else say("Opponent is thinking…", true);
+  } else if (side === ai) {
+    say("AI is thinking…", true);
+    setTimeout(aiTurn, 250);
+  } else say(legalNote());
+  refreshHud(); draw();
+}
+
+function aiTurn() {
+  if (over || training || onlineMode) return;
+  thinking = true;
+  const p = params(dailyMode ? getDaily().level : null);
+  setTimeout(() => {
+    const mv = pickAI(board, ai, p.depth, p.eps, 1000 + Math.min(900, p.level * 35), !dailyMode);
+    thinking = false;
+    if (!mv || over) return;
+    if (!dailyMode && !tampered) aiLog.push([key(board, ai), mv.join("-")]);
+    const before = board, piece = board[mv[0]];
+    playAnim(before, mv, piece, () => {
+      board = apply(before, mv); lastMv = mv; afterMove(ai);
+    });
+  }, 30);
+}
+
+function finish(winner) {
+  over = true; thinking = false;
+  const won = winner === human;
+  if (tampered) {
+    showBanner(won ? "You won!" : winner === ai ? "AI wins" : "Draw",
+      won ? "var(--gn)" : winner === ai ? "var(--er)" : "var(--ac)",
+      "Test game — nothing was learned or counted.", "Play again", () => newGame(false));
+    say(won ? "You won! (test)" : winner === ai ? "AI wins (test)" : "Draw (test)");
+    draw(); return;
+  }
+  if (dailyMode) {
+    const streak = recordDaily(won);
+    if (won) {
+      showBanner("Challenge complete!", "var(--gn)", "Streak: " + streak + " day" + (streak === 1 ? "" : "s") + ". Daily games don't train the AI.", "Play again", () => newGame(false));
+      spawnConfetti();
+    } else if (winner === ai) {
+      showBanner("Not this time", "var(--er)", "Daily games don't train the AI. Try again!", "Try again", () => newGame(true));
+    } else {
+      showBanner("Draw", "var(--ac)", "A draw doesn't count — try again!", "Try again", () => newGame(true));
+    }
+    say($("#ban-title").textContent); draw(); return;
+  }
+  if (onlineMode) {
+    showBanner(won ? "You won!" : winner === -human ? "Opponent wins" : "Draw",
+      won ? "var(--gn)" : winner === -human ? "var(--er)" : "var(--ac)",
+      "Online game — nothing was learned.", "Back to menu", () => { leaveOnline(); newGame(false); });
+    if (won) spawnConfetti();
+    say($("#ban-title").textContent); draw(); return;
+  }
+
+  brain.games++;
+  if (won) brain.wins++; else if (winner === ai) brain.losses++; else brain.draws++;
+  brain.history.push(won ? 1 : winner === ai ? -1 : 0);
+  if (brain.history.length > 120) brain.history.shift();
+
+  // TD learning on the game
+  const result = winner === R ? 1 : winner === B ? -1 : 0;
+  tdUpdate(states, result, 0.014);
+
+  for (const [k, m] of aiLog.slice(-50)) {
+    const e = brain.book[k] || (brain.book[k] = {});
+    const x = e[m] || (e[m] = [0, 0]);
+    if (winner === ai) x[0]++;
+    else if (won) x[1] += 0.75;
+  }
+  const ks = Object.keys(brain.book);
+  if (ks.length > 4000) delete brain.book[ks[0]];
+  save(); refreshHud();
+
+  const title = won ? "You won!" : winner === ai ? "AI wins" : "Draw";
+  const sub = won
+    ? "The AI studied that game and tuned its evaluation."
+    : winner === ai ? "It learned from your moves. Try again!" : "A hard-fought draw. The AI still learned.";
+  showBanner(title, won ? "var(--gn)" : winner === ai ? "var(--er)" : "var(--ac)", sub, "Play again", () => newGame(false));
+  if (won) spawnConfetti();
+  say(title);
+  startCoach();
+  draw();
+}
+
+function showBanner(title, col, sub, btn, cb) {
+  $("#ban-title").textContent = title;
+  $("#ban-title").style.color = col;
+  $("#ban-sub").textContent = sub;
+  $("#ban-btn").textContent = btn;
+  $("#ban-btn").onclick = () => { $("#banner").classList.remove("show"); cb(); };
+  $("#banner").classList.add("show");
+}
+
+/* ---------- coach ---------- */
+function classify(loss, same) {
+  if (same || loss <= 0.08) return ["Best", "The engine’s top choice."];
+  if (loss >= 1.4) return ["Blunder", "Large swing — often loses material or the game."];
+  if (loss >= 0.75) return ["Mistake", "A clearly better move was available."];
+  if (loss >= 0.35) return ["Inaccuracy", "Slightly imprecise; a stronger line existed."];
+  if (loss >= 0.12) return ["Good", "Solid; only a small improvement existed."];
+  return ["Excellent", "Nearly the best move."];
+}
+function analyzeOne(b, s, played, depth, ms) {
+  const moves = gen(b, s);
+  if (moves.length <= 1) return null;
+  const playedT = played.slice();
+  deadline = Date.now() + ms;
+  let scores = null;
+  for (let d = 1; d <= depth; d++) {
+    try {
+      nodes = 0;
+      const sc = {};
+      for (const mv of moves) sc[mv.join("-")] = s * search(apply(b, mv), -s, d - 1, -1e9, 1e9, 1);
+      scores = sc;
+    } catch { break; }
+  }
+  if (!scores) return null;
+  let bestKey = null, bestS = -1e9;
+  for (const [k, v] of Object.entries(scores)) if (v > bestS) { bestS = v; bestKey = k; }
+  let ps = scores[playedT.join("-")];
+  if (ps === undefined) {
+    for (const mv of moves)
+      if (mv[0] === playedT[0] && mv[mv.length - 1] === playedT[playedT.length - 1]) {
+        ps = scores[mv.join("-")]; break;
+      }
+  }
+  if (ps === undefined) ps = bestS;
+  let bestMv = bestKey.split("-").map(Number);
+  if (bestS - ps <= 0.12) { ps = bestS; bestMv = playedT; }
+  return { best: bestMv, bs: bestS, ps, loss: Math.max(0, Math.min(6, bestS - ps)) };
+}
+function startCoach() {
+  coach = { state: "working", results: [] };
+  $("#coach-empty").textContent = "Analysing your game…";
+  $("#coach-empty").style.display = "";
+  $("#coach-body").style.display = "none";
+  const records = moveLog.slice();
+  let i = 0;
+  function step() {
+    if (i >= records.length) { finishCoach(); return; }
+    const r = records[i++];
+    const a = analyzeOne(r.board, r.side, r.move, 3, 260);
+    if (a) {
+      const same = a.best.join("-") === r.move.join("-");
+      const [kind, tip] = classify(a.loss, same);
+      coach.results.push({ num: r.num, board: r.board, side: r.side, played: r.move,
+        best: a.best, loss: same ? 0 : a.loss, kind, tip });
+    }
+    $("#coach-empty").textContent = "Analysing… " + i + " / " + records.length;
+    setTimeout(step, 6);
+  }
+  if (!records.length) {
+    coach = { state: "done", results: [], counts: {}, acc: 100, mistakes: [], n: 0 };
+    renderCoach(); return;
+  }
+  setTimeout(step, 15);
+}
+function finishCoach() {
+  const results = coach.results;
+  let raw = 100;
+  const counts = { Best: 0, Excellent: 0, Good: 0, Inaccuracy: 0, Mistake: 0, Blunder: 0 };
+  for (const r of results) {
+    counts[r.kind] = (counts[r.kind] || 0) + 1;
+    if (r.loss >= 1.4) raw -= 16;
+    else if (r.loss >= 0.75) raw -= 8;
+    else if (r.loss >= 0.35) raw -= 3;
+    else if (r.loss >= 0.12) raw -= 0.5;
+  }
+  const mistakes = results.filter(r => r.loss >= 0.35 && r.played.join("-") !== r.best.join("-"))
+    .sort((a, b) => b.loss - a.loss).slice(0, 5);
+  coach = { state: "done", results, counts, acc: Math.max(0, Math.min(100, raw)), mistakes, n: results.length };
+  renderCoach();
+}
+function renderCoach() {
+  if (!coach || coach.state !== "done") return;
+  $("#coach-empty").style.display = "none";
+  $("#coach-body").style.display = "";
+  const ring = $("#acc-ring");
+  ring.style.setProperty("--pct", coach.acc);
+  ring.dataset.acc = Math.round(coach.acc) + "%";
+  $("#acc-verdict").textContent =
+    coach.acc >= 92 ? "Brilliant!" : coach.acc >= 80 ? "Great game!" :
+    coach.acc >= 65 ? "Solid play" : coach.acc >= 45 ? "Room to improve" : "Tough lesson";
+  $("#acc-detail").textContent = coach.n + " moves · " + coach.mistakes.length + " key moments";
+  const colors = { Best: "#3ddc97", Excellent: "#6be58b", Good: "#f7c948", Inaccuracy: "#8b92ab", Mistake: "#ff9a4a", Blunder: "#ff6b6f" };
+  const total = Math.max(1, Object.values(coach.counts).reduce((a, b) => a + b, 0));
+  const qbar = $("#qbar"); qbar.innerHTML = "";
+  const qleg = $("#qleg"); qleg.innerHTML = "";
+  for (const [name, col] of Object.entries(colors)) {
+    const c = coach.counts[name] || 0; if (!c) continue;
+    const s = document.createElement("span"); s.style.width = (c / total * 100) + "%"; s.style.background = col; qbar.appendChild(s);
+    const leg = document.createElement("span"); leg.innerHTML = `<i style="background:${col}"></i>${name} ${c}`; qleg.appendChild(leg);
+  }
+  const box = $("#mistakes"); box.innerHTML = "";
+  if (!coach.mistakes.length) {
+    box.innerHTML = `<div class="hint" style="margin-top:12px;color:var(--gn);font-weight:600">No big mistakes — nice game!</div>`;
+    return;
+  }
+  for (const m of coach.mistakes) {
+    const div = document.createElement("div");
+    div.className = "mistake" + (m.kind === "Inaccuracy" ? " inacc" : "");
+    div.innerHTML = `<span class="kind">${m.kind.toUpperCase()}</span>
+      <span style="color:var(--mu);font-size:0.8rem">Move ${m.num}</span>
+      <div class="mv">You: ${moveText(m.played)}</div>
+      <div class="mv" style="color:var(--gn)">Better: ${moveText(m.best)}</div>
+      <div class="hint" style="margin:4px 0 0">${m.tip}</div>
+      <button data-review="${m.num}" style="margin-top:6px;font-size:0.8rem">Show on board</button>`;
+    box.appendChild(div);
+  }
+  box.querySelectorAll("[data-review]").forEach(btn => {
+    btn.onclick = () => {
+      const m = coach.mistakes.find(x => x.num === +btn.dataset.review);
+      if (!m) return; reviewPos = m; setTab("game"); draw();
+    };
+  });
+}
+
+/* ---------- training ---------- */
+function trainAI() {
+  if (training || onlineMode) return;
+  training = true; thinking = false;
+  const btn = $("#train"), sel = $("#train-n"), prog = $("#tprog");
+  btn.disabled = true; sel.disabled = true; $("#new").disabled = true;
+  prog.style.display = "block"; prog.querySelector("i").style.width = "0%";
+  const TOTAL = Math.max(10, Math.min(500, +sel.value || 50));
+  let done = 0;
+  say("Training the AI… 0 / " + TOTAL);
+
+  function finishTrain() {
+    training = false; btn.disabled = false; sel.disabled = false; $("#new").disabled = false;
+    prog.style.display = "none"; save(); refreshHud();
+    say("Training complete (" + done + " games). You can train again anytime.");
+  }
+  function oneGame() {
+    try {
+      let b = startBoard(), s = R, q = 0;
+      const st = [b.slice()];
+      const p = params();
+      const depth = Math.min(Math.max(1, p.depth), 3);
+      let result = 0;
+      for (let ply = 0; ply < 140; ply++) {
+        const mvs = gen(b, s);
+        if (!mvs.length) { result = -s; break; }
+        let mv;
+        try { mv = pickAI(b, s, depth, 0.2, 100, true); }
+        catch { mv = mvs[(Math.random() * mvs.length) | 0]; }
+        if (!mv) break;
+        if (isJump(mv) || Math.abs(b[mv[0]]) === 1) q = 0; else q++;
+        b = apply(b, mv); st.push(b.slice()); s = -s;
+        if (q >= 45) break;
+      }
+      tdUpdate(st, result, 0.008);
+      brain.selfplay++;
+    } catch {}
+    done++;
+    prog.querySelector("i").style.width = (done / TOTAL * 100) + "%";
+    if (done % 5 === 0) say("Training the AI… " + done + " / " + TOTAL);
+    if (done < TOTAL) setTimeout(oneGame, 0);
+    else finishTrain();
+  }
+  setTimeout(oneGame, 10);
+}
+
+/* ---------- input (including Ctrl+click) ---------- */
+function boardIndex(clientX, clientY) {
+  const cv = $("#cv"), rc = cv.getBoundingClientRect();
+  const cell = rc.width / N;
+  let c = Math.floor((clientX - rc.left) / cell);
+  let r = Math.floor((clientY - rc.top) / cell);
+  if (human === B) { c = N - 1 - c; r = N - 1 - r; }
+  if (r < 0 || c < 0 || r >= N || c >= N) return null;
+  return r * N + c;
+}
+
+function debugClick(idx) {
+  if (reviewPos || over || training || anim) return;
+  if ((idx / N | 0) + idx % N & 1 === 0) return; // light squares unused — actually dark is (r+c)%2===1
+  if (((idx / N | 0) + (idx % N)) % 2 === 0) return;
+  if (dbgSel === null) {
+    if (board[idx]) dbgSel = idx;
+  } else if (idx === dbgSel) {
+    dbgSel = null;
+  } else if (board[idx]) {
+    dbgSel = idx;
+  } else {
+    // teleport
+    if (thinking) thinking = false;
+    const before = board, src = dbgSel;
+    board = teleport(before, src, idx);
+    states.push(board.slice());
+    tampered = true; dbgSel = null; sel = []; lastMv = [src, idx]; quiet = 0;
+    legal = gen(board, side);
+    refreshHud();
+    if (!legal.length) finish(-side);
+    else if (side === ai) { say("AI is thinking…", true); setTimeout(aiTurn, 250); }
+    else say(legalNote());
+    draw();
+  }
+  draw();
+}
+
+function onPointer(e) {
+  if (training) return;
+  if (onlineMode && !onlineReady) return;
+  const pt = e.touches ? e.touches[0] : e;
+  const idx = boardIndex(pt.clientX, pt.clientY);
+  if (idx === null) return;
+  e.preventDefault();
+
+  // Ctrl / Cmd / right-button style test tool (disabled online)
+  const isDebug = e.ctrlKey || e.metaKey || e.button === 2;
+  if (isDebug) {
+    if (!onlineMode) debugClick(idx);
+    return;
+  }
+
+  if (reviewPos) { reviewPos = null; draw(); return; }
+  if (over || anim || side !== human || thinking) return;
+
+  dbgSel = null;
+  const n = sel.length;
+  if (!n) {
+    if (legal.some(m => m[0] === idx)) sel = [idx];
+  } else {
+    const nxt = legal.filter(m => m.length > n && sel.every((s, i) => m[i] === s)).map(m => m[n]);
+    if (nxt.includes(idx)) {
+      sel.push(idx);
+      const full = legal.find(m => m.length === sel.length && m.every((s, i) => s === sel[i]));
+      if (full) {
+        const mv = full;
+        recordHuman(mv);
+        sel = [];
+        const before = board, piece = board[mv[0]];
+        say("");
+        if (onlineMode && conn && conn.open) {
+          try { conn.send({ type: "move", mv }); } catch {}
+        }
+        playAnim(before, mv, piece, () => {
+          board = apply(before, mv); lastMv = mv; afterMove(human);
+        });
+        return;
+      }
+    } else if (n === 1 && legal.some(m => m[0] === idx)) sel = [idx];
+    else sel = [];
+  }
+  draw();
+}
+
+const cvEl = $("#cv");
+cvEl.addEventListener("click", onPointer);
+cvEl.addEventListener("contextmenu", e => { e.preventDefault(); onPointer(e); });
+cvEl.addEventListener("touchstart", onPointer, { passive: false });
+
+$("#new").onclick = () => newGame(false);
+$("#d-start").onclick = () => newGame(true);
+$("#train").onclick = trainAI;
+$("#size").onchange = () => { if (!dailyMode) newGame(false); };
+$("#col").onchange = () => {
+  brain.settings.color = $("#col").value; save();
+  if (!dailyMode) newGame(false);
+};
+$("#rev").onchange = () => { if (!dailyMode) newGame(false); };
+$("#theme").onchange = e => {
+  document.documentElement.dataset.theme = e.target.value || "classic";
+  brain.settings.theme = e.target.value || "classic";
+  save(); draw();
+};
+$("#bminus").onclick = () => adjustBoost(-1);
+$("#bplus").onclick = () => adjustBoost(1);
+function adjustBoost(d) {
+  const cur = boost();
+  let idx = 0, best = 1e9;
+  BOOST_STEPS.forEach((v, i) => { if (Math.abs(v - cur) < best) { best = Math.abs(v - cur); idx = i; } });
+  idx = Math.max(0, Math.min(BOOST_STEPS.length - 1, idx + d));
+  brain.settings.boost = BOOST_STEPS[idx];
+  save(); refreshHud();
+}
+
+$("#export").onclick = () => {
+  const blob = new Blob([JSON.stringify(brain, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "checkers-brain.json";
+  a.click(); URL.revokeObjectURL(a.href);
+};
+$("#import").onclick = () => $("#impfile").click();
+$("#impfile").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const d = Object.assign(blank(), JSON.parse(reader.result));
+      d.settings = Object.assign(blank().settings, d.settings || {});
+      if (!Array.isArray(d.w) || d.w.length < W0.length) d.w = W0.slice();
+      brain = d; save(); refreshHud(); say("Brain imported.");
+    } catch { say("Could not import that file."); }
+  };
+  reader.readAsText(f);
+};
+
+/* ---------- drawing ---------- */
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function fit() {
+  const wrap = $("#wrap"), s = Math.min(wrap.clientWidth || 600, 640);
+  const d = Math.min(window.devicePixelRatio || 1, 2);
+  cvEl.width = cvEl.height = Math.round(s * d);
+}
+function spawnConfetti() {
+  const now = performance.now();
+  const cols = [css("--ac"), css("--gn"), css("--rd"), css("--bk"), "#6bb7ff", "#fff"];
+  for (let i = 0; i < 80; i++) {
+    effects.push({
+      k: "conf", x: Math.random() * cvEl.width, y: -10 - Math.random() * 40,
+      vx: (Math.random() - 0.5) * 80, vy: 60 + Math.random() * 100,
+      t0: now + Math.random() * 400, life: 2800,
+      c: cols[(Math.random() * cols.length) | 0],
+      w: 4 + Math.random() * 5, h: 2 + Math.random() * 3, ph: Math.random() * 6.28
+    });
+  }
+  requestAnimationFrame(drawEffects);
+}
+function drawEffects(now) {
+  effects = effects.filter(e => now < e.t0 + e.life);
+  if (effects.length) { draw(now); requestAnimationFrame(drawEffects); }
+}
+
+function draw(t) {
+  const g = cvEl.getContext("2d");
+  const S = cvEl.width, cell = S / N, fl = human === B;
+  const X = i => ((fl ? N - 1 - (i % N) : i % N) + 0.5) * cell;
+  const Y = i => ((fl ? N - 1 - ((i / N) | 0) : ((i / N) | 0)) + 0.5) * cell;
+  const now = t || performance.now();
+
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    g.fillStyle = (r + c) % 2 ? css("--dk") : css("--lt");
+    g.fillRect(c * cell, r * cell, cell + 0.5, cell + 0.5);
+  }
+
+  const tint = (i, col, a) => {
+    g.globalAlpha = a; g.fillStyle = col;
+    g.fillRect(X(i) - cell / 2, Y(i) - cell / 2, cell, cell);
+    g.globalAlpha = 1;
+  };
+
+  if (reviewPos) {
+    for (const i of reviewPos.played) tint(i, css("--er"), 0.28);
+    for (const i of reviewPos.best) tint(i, css("--gn"), 0.28);
+  } else {
+    lastMv.forEach(i => tint(i, css("--ac"), 0.22));
+    sel.forEach(i => tint(i, css("--ac"), 0.4));
+    if (dbgSel != null) tint(dbgSel, "#4fd8ff", 0.35);
+  }
+
+  if (!over && !anim && side === human && !reviewPos) {
+    if (sel.length) {
+      legal.filter(m => m.length > sel.length && sel.every((s, i) => m[i] === s)).forEach(m => {
+        const i = m[sel.length];
+        g.fillStyle = "rgba(61,220,151,0.9)";
+        g.beginPath(); g.arc(X(i), Y(i), cell * 0.13, 0, 7); g.fill();
+        g.strokeStyle = "rgba(61,220,151,0.5)"; g.lineWidth = 2;
+        g.beginPath(); g.arc(X(i), Y(i), cell * 0.2, 0, 7); g.stroke();
+      });
+    } else {
+      new Set(legal.map(m => m[0])).forEach(i => {
+        g.strokeStyle = "rgba(61,220,151,0.55)"; g.lineWidth = 2.5;
+        g.beginPath(); g.arc(X(i), Y(i), cell * 0.4, 0, 7); g.stroke();
+      });
+    }
+  }
+
+  const src = anim ? anim.before.slice() : board.slice();
+  if (anim) {
+    src[anim.mv[0]] = 0;
+    for (const s of anim.segs) if (s.jump && anim.fading[s.mid] !== undefined) src[s.mid] = 0;
+  }
+
+  function piece(x, y, p, fade, lift) {
+    if (fade >= 1) return;
+    const a = Math.abs(p), rd = cell * 0.38 * (1 - 0.75 * fade);
+    const top = p > 0 ? css("--rd") : css("--bk");
+    const sideC = p > 0 ? css("--rd-s") : css("--bk-s");
+    const rim = p > 0 ? css("--rd-r") : css("--bk-r");
+    lift = lift || 0;
+    g.globalAlpha = 1 - fade * 0.85;
+    g.fillStyle = "rgba(0,0,0,0.28)";
+    g.beginPath(); g.arc(x + 2, y + cell * 0.08 + lift * 0.3, rd, 0, 7); g.fill();
+    g.fillStyle = sideC;
+    g.beginPath(); g.arc(x, y + cell * 0.05 - lift * 0.3, rd, 0, 7); g.fill();
+    g.fillStyle = top;
+    g.beginPath(); g.arc(x, y - lift, rd, 0, 7); g.fill();
+    g.strokeStyle = rim; g.lineWidth = 2;
+    g.beginPath(); g.arc(x, y - lift, rd, 0, 7); g.stroke();
+    g.beginPath(); g.arc(x, y - lift, rd * 0.62, 0, 7); g.stroke();
+    g.fillStyle = "rgba(255,255,255,0.28)";
+    g.beginPath(); g.arc(x - rd * 0.32, y - lift - rd * 0.35, rd * 0.16, 0, 7); g.fill();
+    if (a >= 2) {
+      const charged = a === 2;
+      g.fillStyle = charged ? css("--crown") : css("--silver");
+      const w = rd * 0.48, h = rd * 0.36, yy = y - lift;
+      g.beginPath();
+      g.moveTo(x - w, yy + h); g.lineTo(x - w, yy - h * 0.45);
+      g.lineTo(x - w * 0.5, yy + h * 0.05); g.lineTo(x, yy - h);
+      g.lineTo(x + w * 0.5, yy + h * 0.05); g.lineTo(x + w, yy - h * 0.45);
+      g.lineTo(x + w, yy + h); g.closePath(); g.fill();
+      if (charged && REV) {
+        g.strokeStyle = css("--crown"); g.lineWidth = 2;
+        const pulse = 3 + 1.5 * Math.sin(now / 200);
+        g.beginPath(); g.arc(x, y - lift, rd + pulse, 0, 7); g.stroke();
+      }
+    }
+    g.globalAlpha = 1;
+  }
+
+  for (let i = 0; i < N * N; i++) {
+    const p = src[i]; if (!p) continue;
+    let fade = 0;
+    if (anim && anim.fading[i] !== undefined) fade = Math.min(1, (now - anim.fading[i]) / 280);
+    let lift = 0;
+    if (i === dbgSel) lift = cell * 0.06;
+    piece(X(i), Y(i), p, fade, lift);
+  }
+
+  if (anim) {
+    const e = Math.min(now - anim.start, anim.total);
+    let seg = anim.segs[anim.segs.length - 1];
+    for (const s of anim.segs) if (e <= s.t0 + s.dur) { seg = s; break; }
+    const u = Math.min(1, Math.max(0, (e - seg.t0) / seg.dur));
+    const ease = u * u * (3 - 2 * u);
+    const x = X(seg.a) + (X(seg.b) - X(seg.a)) * ease;
+    const y = Y(seg.a) + (Y(seg.b) - Y(seg.a)) * ease;
+    const lift = Math.sin(Math.PI * ease) * cell * (seg.jump ? 0.22 : 0.08);
+    piece(x, y, anim.piece, 0, lift);
+  }
+
+  function arrow(mv, col, off) {
+    if (!mv || mv.length < 2) return;
+    g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 4; g.lineCap = "round"; g.lineJoin = "round";
+    const pts = mv.map(i => [X(i), Y(i)]);
+    const [x0, y0] = pts[0], [x1, y1] = pts[pts.length - 1];
+    const dx = x1 - x0, dy = y1 - y0, ln = Math.hypot(dx, dy) || 1;
+    const ox = -dy / ln * off, oy = dx / ln * off;
+    g.beginPath();
+    pts.forEach(([x, y], i) => i ? g.lineTo(x + ox, y + oy) : g.moveTo(x + ox, y + oy));
+    g.stroke();
+    const prev = pts[pts.length - 2] || pts[0];
+    const ang = Math.atan2(y1 - prev[1], x1 - prev[0]);
+    const hx = x1 + ox, hy = y1 + oy;
+    g.beginPath();
+    g.moveTo(hx, hy);
+    g.lineTo(hx - 12 * Math.cos(ang - 0.4), hy - 12 * Math.sin(ang - 0.4));
+    g.lineTo(hx - 12 * Math.cos(ang + 0.4), hy - 12 * Math.sin(ang + 0.4));
+    g.closePath(); g.fill();
+  }
+  if (reviewPos) {
+    arrow(reviewPos.played, css("--er"), -5);
+    arrow(reviewPos.best, css("--gn"), 5);
+  }
+
+  for (const e of effects) {
+    if (now < e.t0) continue;
+    const ageMs = now - e.t0;
+    const u = ageMs / e.life;
+    if (e.k === "spark") {
+      const age = ageMs / 1000;
+      const x = e.x + e.vx * age;
+      const y = e.y + e.vy * age + 140 * age * age;
+      const s = e.s * (1 - u);
+      g.fillStyle = e.c;
+      g.beginPath(); g.arc(x, y, Math.max(0.5, s), 0, 7); g.fill();
+    } else if (e.k === "ring") {
+      const rr = cell * (0.25 + 0.75 * u);
+      g.strokeStyle = css("--ac");
+      g.globalAlpha = 1 - u;
+      g.lineWidth = Math.max(1, 5 * (1 - u));
+      g.beginPath(); g.arc(e.x, e.y, rr, 0, 7); g.stroke();
+      g.globalAlpha = 1;
+    } else if (e.k === "beam") {
+      const w = 22 * (1 - u) + 4;
+      g.globalAlpha = 0.7 * (1 - u);
+      g.fillStyle = css("--ac");
+      g.fillRect(e.x - w, e.y - cell * 2.2, w * 2, cell * 2.3);
+      g.globalAlpha = 1;
+    } else if (e.k === "conf") {
+      const age = ageMs / 1000;
+      const x = e.x + e.vx * age + 12 * Math.sin(age * 4 + e.ph);
+      const y = e.y + e.vy * age + 40 * age * age;
+      g.save(); g.translate(x, y); g.rotate(age * 6 + e.ph);
+      g.fillStyle = e.c; g.fillRect(-e.w / 2, -e.h / 2, e.w, e.h); g.restore();
+    }
+  }
+}
+
+/* ---------- online multiplayer (PeerJS) ---------- */
+function roomCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < 5; i++) s += chars[(Math.random() * chars.length) | 0];
+  return s;
+}
+function setOnlineUI(status, code, col) {
+  $("#o-status").textContent = status;
+  if (code != null) $("#o-code").textContent = code;
+  if (col != null) $("#o-col").textContent = col;
+  $("#o-leave").style.display = onlineMode ? "" : "none";
+  $("#o-host").disabled = onlineMode;
+  $("#o-join").disabled = onlineMode;
+  $("#o-join-code").disabled = onlineMode;
+}
+function leaveOnline() {
+  onlineMode = false; onlineReady = false; isHost = false;
+  try { if (conn) conn.close(); } catch {}
+  try { if (peer) peer.destroy(); } catch {}
+  conn = null; peer = null;
+  setOnlineUI("Disconnected", "—", "—");
+}
+function wireConn(c) {
+  conn = c;
+  c.on("data", msg => {
+    if (!msg || !msg.type) return;
+    if (msg.type === "hello") {
+      // guest receives host colour assignment already known
+      onlineReady = true;
+      setOnlineUI("Connected", $("#o-code").textContent, human === R ? "Red" : "Black");
+      say(side === human ? legalNote() : "Opponent is thinking…", side !== human);
+    }
+    if (msg.type === "move" && Array.isArray(msg.mv)) {
+      if (over || anim || side === human) return;
+      const mv = msg.mv.map(Number);
+      // validate roughly
+      const ok = legal.some(m => m.length === mv.length && m.every((x, i) => x === mv[i]));
+      if (!ok) return;
+      const before = board, piece = board[mv[0]];
+      playAnim(before, mv, piece, () => {
+        board = apply(before, mv); lastMv = mv; afterMove(-human);
+      });
+    }
+    if (msg.type === "sync") {
+      // host can push full state if needed
+    }
+  });
+  c.on("close", () => {
+    if (onlineMode) {
+      setOnlineUI("Opponent left", $("#o-code").textContent, $("#o-col").textContent);
+      say("Opponent disconnected.");
+      onlineReady = false;
+    }
+  });
+  c.on("error", () => setOnlineUI("Connection error", $("#o-code").textContent, $("#o-col").textContent));
+}
+
+function startOnlineHost() {
+  if (typeof Peer === "undefined") {
+    say("PeerJS failed to load — check your internet.");
+    return;
+  }
+  leaveOnline();
+  const code = roomCode();
+  isHost = true; onlineMode = true; onlineReady = false;
+  setOnlineUI("Creating room…", code, "Red (host)");
+  peer = new Peer("chk-" + code, { debug: 0 });
+  peer.on("open", () => {
+    setOnlineUI("Waiting for opponent…", code, "Red (host)");
+    // prepare board as host = Red (always 8×8 online)
+    dailyMode = false; tampered = false;
+    N = 8; ROWS = 3; PIECES = 12; REV = $("#rev").checked;
+    human = R; ai = B;
+    board = startBoard(); side = R;
+    over = false; sel = []; lastMv = []; quiet = 0; aiLog = []; moveLog = [];
+    states = [board.slice()]; anim = null; thinking = false;
+    $("#banner").classList.remove("show");
+    legal = gen(board, side);
+    fit(); refreshHud(); draw();
+    say("Room " + code + " — waiting for a friend to join…");
+  });
+  peer.on("connection", c => {
+    wireConn(c);
+    c.on("open", () => {
+      onlineReady = true;
+      setOnlineUI("Connected", code, "Red (host)");
+      try { c.send({ type: "hello", hostIsRed: true }); } catch {}
+      say(legalNote());
+      draw();
+    });
+  });
+  peer.on("error", err => {
+    setOnlineUI("Error: " + (err.type || "failed"), code, "—");
+    say("Could not create room. Try again.");
+    onlineMode = false;
+  });
+}
+
+function startOnlineJoin() {
+  if (typeof Peer === "undefined") {
+    say("PeerJS failed to load — check your internet.");
+    return;
+  }
+  const code = ($("#o-join-code").value || "").trim().toUpperCase();
+  if (code.length < 4) { say("Enter a valid room code."); return; }
+  leaveOnline();
+  isHost = false; onlineMode = true; onlineReady = false;
+  setOnlineUI("Connecting…", code, "Black");
+  peer = new Peer({ debug: 0 });
+  peer.on("open", () => {
+    const c = peer.connect("chk-" + code, { reliable: true });
+    wireConn(c);
+    c.on("open", () => {
+      onlineReady = true;
+      dailyMode = false; tampered = false;
+      N = 8; ROWS = 3; PIECES = 12; REV = true;
+      human = B; ai = R;
+      board = startBoard(); side = R;
+      over = false; sel = []; lastMv = []; quiet = 0; aiLog = []; moveLog = [];
+      states = [board.slice()]; anim = null; thinking = false;
+      $("#banner").classList.remove("show");
+      legal = gen(board, side);
+      fit(); refreshHud(); draw();
+      setOnlineUI("Connected", code, "Black (guest)");
+      try { c.send({ type: "hello" }); } catch {}
+      say("Opponent is thinking…", true);
+    });
+    c.on("error", () => {
+      setOnlineUI("Could not join", code, "—");
+      say("Room not found or host offline.");
+      onlineMode = false;
+    });
+  });
+  peer.on("error", () => {
+    setOnlineUI("Connection failed", code, "—");
+    onlineMode = false;
+  });
+}
+
+$("#o-host").onclick = startOnlineHost;
+$("#o-join").onclick = startOnlineJoin;
+$("#o-leave").onclick = () => { leaveOnline(); newGame(false); };
+
+/* ---------- boot ---------- */
+document.documentElement.dataset.theme = brain.settings.theme || "classic";
+$("#theme").value = brain.settings.theme || "classic";
+$("#size").value = brain.settings.size || 8;
+$("#rev").checked = brain.settings.revive !== false;
+if (brain.settings.color) $("#col").value = brain.settings.color;
+
+addEventListener("resize", () => { fit(); draw(); });
+fit();
+refreshHud();
+newGame(false);
+})();
+</script>
+</body>
+</html>
